@@ -18,8 +18,11 @@ SELECT [ID]
 "@
 
     $MESUsersWhoHaveLoggedOnInTheLast3Months = Invoke-SQL -dataSource $DataSource -database $DataBase -sqlCommand $QueryForMESUsersWhoHaveLoggedOnIn3Months
-    $UserNames = $MESUsersWhoHaveLoggedOnInTheLast3Months | select -ExpandProperty userid
-    $UserNames
+    $UserNames = $MESUsersWhoHaveLoggedOnInTheLast3Months | 
+    select -ExpandProperty userid
+
+    $UniqueUserNamesWithoutWhiteSpace = $UserNames | Sort-Object -Unique | Remove-WhiteSpace
+    $UniqueUserNamesWithoutWhiteSpace
 }
 
 Function Remove-ADMESUsersWhoHaveNotLoggedOnIn3Months {
