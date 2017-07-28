@@ -21,7 +21,7 @@ SELECT [ID]
     $UserNames = $MESUsersWhoHaveLoggedOnInTheLast3Months | 
     select -ExpandProperty userid
 
-    $UniqueUserNamesWithoutWhiteSpace = $UserNames | Sort-Object -Unique | Remove-WhiteSpace
+    $UniqueUserNamesWithoutWhiteSpace = $UserNames | Remove-WhiteSpace | Sort-Object -Unique
     $UniqueUserNamesWithoutWhiteSpace
 }
 
