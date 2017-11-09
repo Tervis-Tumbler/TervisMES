@@ -55,3 +55,50 @@ function Get-ADUsersThatShouldntBeMESOnlyUsers {
     
 }
 
+#function Install-StoresRDSRemoteDesktopPrivilegeScheduledTasks {
+#    param (
+#        [Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ComputerName
+#    )
+#    begin {
+#        $ScheduledTaskCredential = New-Object System.Management.Automation.PSCredential (Get-PasswordstateCredential -PasswordID 259)
+#        $Execute = 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+#        $Argument = '-Command Update-StoreManagerToStoresRdsPrivilege -NoProfile'
+#    }
+#    process {
+#        Install-PowerShellApplicationScheduledTask -FunctionName 
+#
+#        $CimSession = New-CimSession -ComputerName $ComputerName
+#        If (-NOT (Get-ScheduledTask -TaskName Update-Privilege_StoresRDS_RemoteDesktop -CimSession $CimSession -ErrorAction SilentlyContinue)) {
+#            Install-TervisScheduledTask -Credential $ScheduledTaskCredential -TaskName Update-Privilege_StoresRDS_RemoteDesktop -Execute $Execute -Argument $Argument -RepetitionIntervalName EveryDayAt2am -ComputerName $ComputerName
+#        }
+#    }
+#}
+
+function Remove-HelixBatches {
+    param (	
+	    [Parameter(Mandatory, HelpMessage="Directory path to files to be deleted")]
+	    $path,
+	    [Parameter(Mandatory, HelpMessage="Number of days history to remain")]
+	    $days
+    )
+
+    ## CALL POWERSHELL USING Argument:
+    ## -command "& 'c:\scripts\DeleteFilesOlderThan.ps1' -path '\\tervis.prv\applications\MES\Helix\Helix Batches\Delta' -days 14"
+	
+    $limit = (Get-Date).AddDays(-1 * $days)
+
+    # Delete files older than the $limit.
+    Get-ChildItem -Path $path -Recurse -Force | 
+    Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $limit } | 
+    Remove-Item -Force
+
+    # Delete any empty directories left behind after deleting the old files.
+    Get-ChildItem -Path $path -Recurse -Force | 
+    Where-Object { 
+        $_.PSIsContainer -and (
+            Get-ChildItem -Path $_.FullName -Recurse -Force | 
+            Where-Object { !$_.PSIsContainer }
+        ) -eq $null 
+    } |
+    Remove-Item -Force -Recurse
+}
