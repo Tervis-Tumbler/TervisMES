@@ -1,4 +1,11 @@
-﻿Function Get-MESUsersWhoHaveLoggedOnIn3Months {
+﻿$ModulePath = if ($PSScriptRoot) {
+	$PSScriptRoot
+} else {
+	(Get-Module -ListAvailable TervisMES).ModuleBase
+}
+. $ModulePath\Definition.ps1
+
+Function Get-MESUsersWhoHaveLoggedOnIn3Months {
     param (
         [Parameter(Mandatory)]$DataSource,
         [Parameter(Mandatory)]$DataBase
@@ -101,4 +108,14 @@ function Remove-HelixBatches {
         ) -eq $null 
     } |
     Remove-Item -Force -Recurse
+}
+
+function Get-MESCustomyzerGraphicsBatchDetail {
+    param (
+        [Parameter(Mandatory)]$BatchID
+    )
+
+    Invoke-MSSQL -Server messql.production.tervis.prv -Database mes -SQLCommand @"
+exec [Graphics].[GetBatchDetails] $BatchID
+"@ -ConvertFromDataRow
 }
