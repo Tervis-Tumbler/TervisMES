@@ -114,8 +114,45 @@ function Get-MESCustomyzerGraphicsBatchDetail {
     param (
         [Parameter(Mandatory)]$BatchID
     )
-
+    #http://tfs2012:8080/tfs/DefaultCollection/MES/_versionControl#path=%24%2FMES%2FSource%2FMain%2FTervis.MES.SQL%2FTervis.MES.SQL%2FGraphics%2FStored%20Procedures%2FGetBatchDetails.sql&version=T&_a=contents
     Invoke-MSSQL -Server messql.production.tervis.prv -Database mes -SQLCommand @"
 exec [Graphics].[GetBatchDetails] $BatchID
 "@ -ConvertFromDataRow
+}
+
+function Invoke-MESSQL {
+    param (
+        [Parameter(Mandatory,ParameterSetName="SQLCommand")]$SQLCommand
+	)
+    Invoke-MSSQL -Server SQL -Database MES -sqlCommand $SQLCommand -ConvertFromDataRow
+}
+
+function Get-MESGraphicsGraphicsBatchRenderLog {
+	param(
+		[Parameter(ValueFromPipelineByPropertyName)]$GraphicsBatchHeaderID
+	)
+	process {
+		$SQLCommand = New-SQLSelect -SchemaName Graphics -TableName GraphicsBatchRenderLog -Parameters $PSBoundParameters
+        Invoke-MESSQL -SQLCommand $SQLCommand
+        #  |
+		# Add-Member -MemberType ScriptProperty -Name OrderDetail -Force -PassThru -Value {
+		# 	$This | Add-Member -MemberType NoteProperty -Name OrderDetail -Force -Value $($This | Get-CustomyzerApprovalOrderDetail)
+		# 	$This.OrderDetail
+		# }
+	}
+}
+
+function Set-MESGraphicsGraphicsBatchRenderLog {
+	param (
+		[Parameter(Mandatory,ValueFromPipelineByPropertyName)]$ID,
+		$ProcessingFinish,
+		$ProcessingStatus
+	)
+	process {
+        $ValueParameters = $PSBoundParameters |
+        ConvertFrom-PSBoundParameters -ExcludeProperty ID -AsHashTable
+
+		$SQLCommand = New-SQLUpdate -SchemaName Graphics -TableName GraphicsBatchRenderLog -WhereParameters @{ID = $ID} -ValueParameters $ValueParameters
+        Invoke-MESSQL -SQLCommand $SQLCommand
+	}
 }
